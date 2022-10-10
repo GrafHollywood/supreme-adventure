@@ -8,7 +8,9 @@
     "test": "nx test"
   },
   "private": true,
-  "dependencies": {},
+  "dependencies": {
+    "@nrwl/react": "^14.8.3"
+  },
   "devDependencies": {
     "@nrwl/cli": "14.8.3",
     "@nrwl/nx-cloud": "latest",
