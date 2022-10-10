@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Todo } from '@supreme-adventure/data';
 
 @Injectable()
 export class AppService {
-  getData(): { message: string } {
-    return { message: 'Welcome to api!' };
+  getData(): Todo {
+    return { title: 'Welcome to api!' };
   }
 }
