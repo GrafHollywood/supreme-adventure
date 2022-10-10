@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@supreme-adventure/data": ["libs/data/src/index.ts"]
+      "@supreme-adventure/data": ["libs/data/src/index.ts"],
+      "@supreme-adventure/ui": ["libs/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
