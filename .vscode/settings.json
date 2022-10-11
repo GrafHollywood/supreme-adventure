@@ -1,3 +1,5 @@
 {
-  "cSpell.words": ["nrwl"]
+  "cSpell.words": ["nrwl"],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
