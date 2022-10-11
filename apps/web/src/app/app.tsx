@@ -6,12 +6,6 @@ import { useEffect, useState } from 'react';
 export function App() {
   const [obj, setObj] = useState<Todo | null>(null);
 
-  useEffect(() => {
-    fetch('/api')
-      .then((res) => res.json())
-      .then((obj) => setObj(obj));
-  }, []);
-
   return (
     <>
       <h1 className={styles['title']}>Hi, mom!</h1>
