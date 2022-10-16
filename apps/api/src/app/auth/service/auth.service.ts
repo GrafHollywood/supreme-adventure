@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from '../../users/dto/create-user.dto';
@@ -29,10 +29,13 @@ export class AuthService {
       name: name,
       passwordHash: await bcrypt.hash(password, 10),
     };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { passwordHash, ...result } = await this.userService.create(
-      createUserDto
-    );
-    return result;
+    try {
+      const user = await this.userService.create(createUserDto);
+      // eslint-disable-next-line
+      const { passwordHash, ...result } = user;
+      return result;
+    } catch (e) {
+      throw new BadRequestException();
+    }
   }
 }
