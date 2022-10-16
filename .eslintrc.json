@@ -6,6 +6,7 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
+        "no-console": "error",
         "simple-import-sort/exports": "error",
         "simple-import-sort/imports": "error",
         "@nrwl/nx/enforce-module-boundaries": [
