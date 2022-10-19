@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from '../../users/dto/create-user.dto';
@@ -7,7 +8,10 @@ import { RegisterUserDto, TUserResult } from '../dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UsersService) {}
+  constructor(
+    private userService: UsersService,
+    private jwtService: JwtService
+  ) {}
 
   async validateUser(
     username: string,
@@ -20,6 +24,13 @@ export class AuthService {
       return isMatch ? result : null;
     }
     return null;
+  }
+
+  async login(user: TUserResult) {
+    const payload = { username: user.username, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   async registerUser(newUser: RegisterUserDto): Promise<TUserResult> {
