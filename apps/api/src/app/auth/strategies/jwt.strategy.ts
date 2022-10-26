@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: {
     username: string;
-    sub: string;
+    sub: number;
   }): Promise<TUserResult> {
     // eslint-disable-next-line
     const { passwordHash, ...result } = await this.usersService.findOne(

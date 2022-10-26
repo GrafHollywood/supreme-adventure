@@ -1,4 +1,4 @@
-import { UserDto } from '../../users/dto/user.dto';
+import { User } from '../../users/entity/user.entity';
 
 export class RegisterUserDto {
   username: string;
@@ -6,4 +6,4 @@ export class RegisterUserDto {
   password: string;
 }
 
-export type TUserResult = Omit<UserDto, 'passwordHash'>;
+export type TUserResult = Omit<User, 'passwordHash'>;
