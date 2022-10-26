@@ -20,7 +20,7 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
     return this.usersRepository.findOneBy({ id });
   }
 
@@ -28,13 +28,13 @@ export class UsersService {
     return this.usersRepository.findOneBy({ username });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const oldUser = await this.usersRepository.findOneBy({ id });
     const newUser = { ...oldUser, ...updateUserDto };
     return this.usersRepository.save(newUser);
   }
 
-  async remove(id: number): Promise<User> {
+  async remove(id: string): Promise<User> {
     const userToRemove = await this.usersRepository.findOneBy({ id });
     return this.usersRepository.remove(userToRemove);
   }
