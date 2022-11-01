@@ -1,9 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from '../../users/dto/create-user.dto';
-import { User } from '../../users/entity/user.entity';
 import { UsersService } from '../../users/users.service';
 import {
   RegisterUserDto,
@@ -82,5 +85,20 @@ export class AuthService {
   ): Promise<void> {
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
     await this.userService.update(userId, { refreshTokenHash });
+  }
+
+  async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
+    const user = await this.userService.findOne(userId);
+    if (!user || !user.refreshTokenHash)
+      throw new ForbiddenException('Access Denied');
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash
+    );
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    const payload: JwtPayload = { username: user.username, sub: user.id };
+    const tokens = this.getTokens(payload);
+    await this.updateUserRefreshToken(userId, tokens.refresh_token);
+    return tokens;
   }
 }

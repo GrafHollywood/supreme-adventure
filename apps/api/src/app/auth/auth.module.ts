@@ -8,6 +8,7 @@ import { AuthController } from './controller/auth.controller';
 import { AuthService } from './service/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       secret: environment.jwtSecret,
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

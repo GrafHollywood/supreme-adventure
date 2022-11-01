@@ -11,6 +11,7 @@ import { UsersService } from '../../users/users.service';
 import { RegisterUserDto } from '../dto/register-user.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { RefreshTokenAuthGuard } from '../guards/refresh-token-auth.guard';
 import { AuthService } from '../service/auth.service';
 
 @Controller('auth')
@@ -44,5 +45,13 @@ export class AuthController {
       req.user.username
     );
     return { id, username, name };
+  }
+
+  @UseGuards(RefreshTokenAuthGuard)
+  @Post('refresh')
+  refreshTokens(@Request() req) {
+    const userId = req.user.sub;
+    const refreshToken = req.user.refreshToken;
+    return this.authService.refreshTokens(userId, refreshToken);
   }
 }
