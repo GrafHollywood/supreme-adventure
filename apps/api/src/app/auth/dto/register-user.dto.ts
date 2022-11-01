@@ -1,4 +1,5 @@
 import { User } from '../../users/entity/user.entity';
+import { Tokens } from '../service/auth.service';
 
 export class RegisterUserDto {
   username: string;
@@ -7,3 +8,4 @@ export class RegisterUserDto {
 }
 
 export type TUserResult = Omit<User, 'passwordHash'>;
+export type TUserLoginResult = TUserResult & Tokens;

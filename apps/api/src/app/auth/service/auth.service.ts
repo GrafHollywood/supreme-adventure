@@ -4,8 +4,16 @@ import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { UsersService } from '../../users/users.service';
-import { RegisterUserDto, TUserResult } from '../dto/register-user.dto';
-
+import {
+  RegisterUserDto,
+  TUserLoginResult,
+  TUserResult,
+} from '../dto/register-user.dto';
+import { JwtPayload } from '../strategies/jwt.strategy';
+export interface Tokens {
+  access_token: string;
+  refresh_token: string;
+}
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,21 +27,28 @@ export class AuthService {
   ): Promise<TUserResult | null> {
     const user = await this.userService.findOneByUsername(username);
     if (user) {
-      const { passwordHash, ...result } = user;
+      const { passwordHash, ...userResult } = user;
       const isMatch = await bcrypt.compare(password, passwordHash);
-      return isMatch ? result : null;
+      return isMatch ? userResult : null;
     }
     return null;
   }
 
-  async login(user: TUserResult) {
-    const payload = { username: user.username, sub: user.id };
+  async login(user: TUserResult): Promise<TUserLoginResult> {
+    const { id, username, name } = await this.userService.findOneByUsername(
+      user.username
+    );
+    const payload: JwtPayload = { username: user.username, sub: user.id };
+    const tokens = this.getTokens(payload);
     return {
-      access_token: this.jwtService.sign(payload),
+      id,
+      username,
+      name,
+      ...tokens,
     };
   }
 
-  async registerUser(newUser: RegisterUserDto): Promise<TUserResult> {
+  async registerUser(newUser: RegisterUserDto): Promise<TUserLoginResult> {
     const { username, name, password } = newUser;
     const createUserDto: CreateUserDto = {
       username: username,
@@ -41,12 +56,26 @@ export class AuthService {
       passwordHash: await bcrypt.hash(password, 10),
     };
     try {
-      const user = await this.userService.create(createUserDto);
-      // eslint-disable-next-line
-      const { passwordHash, ...result } = user;
-      return result;
+      const { id, username, name } = await this.userService.create(
+        createUserDto
+      );
+      const payload: JwtPayload = { username, sub: id };
+      const tokens = this.getTokens(payload);
+      return {
+        id,
+        username,
+        name,
+        ...tokens,
+      };
     } catch (e) {
-      throw new BadRequestException();
+      throw new BadRequestException('User already exists');
     }
+  }
+
+  getTokens(payload: JwtPayload): Tokens {
+    return {
+      access_token: this.jwtService.sign(payload, { expiresIn: '60s' }),
+      refresh_token: this.jwtService.sign(payload, { expiresIn: '15d' }),
+    };
   }
 }

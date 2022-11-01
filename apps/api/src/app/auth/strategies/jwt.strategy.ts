@@ -4,8 +4,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { environment } from '../../../environments/environment';
 import { UsersService } from '../../users/users.service';
-import { TUserResult } from '../dto/register-user.dto';
-
+export interface JwtPayload {
+  username: string;
+  sub: string;
+}
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private usersService: UsersService) {
@@ -16,14 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: {
-    username: string;
-    sub: string;
-  }): Promise<TUserResult> {
-    // eslint-disable-next-line
-    const { passwordHash, ...result } = await this.usersService.findOne(
-      payload.sub
-    );
-    return result;
+  async validate(payload: JwtPayload): Promise<JwtPayload> {
+    return payload;
   }
 }
