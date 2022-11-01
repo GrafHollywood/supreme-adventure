@@ -35,17 +35,11 @@ export class AuthService {
   }
 
   async login(user: TUserResult): Promise<TUserLoginResult> {
-    const { id, username, name } = await this.userService.findOneByUsername(
-      user.username
-    );
-    const payload: JwtPayload = { username: user.username, sub: user.id };
-    const tokens = this.getTokens(payload);
-    return {
-      id,
-      username,
-      name,
-      ...tokens,
-    };
+    const { id, username, name } = user;
+    const payload: JwtPayload = { username, sub: id };
+    const { access_token, refresh_token } = this.getTokens(payload);
+    await this.updateUserRefreshToken(id, refresh_token);
+    return { id, username, name, access_token, refresh_token };
   }
 
   async registerUser(newUser: RegisterUserDto): Promise<TUserLoginResult> {
@@ -56,17 +50,12 @@ export class AuthService {
       passwordHash: await bcrypt.hash(password, 10),
     };
     try {
-      const { id, username, name } = await this.userService.create(
-        createUserDto
-      );
+      const createdUser = await this.userService.create(createUserDto);
+      const { id, username, name } = createdUser;
       const payload: JwtPayload = { username, sub: id };
-      const tokens = this.getTokens(payload);
-      return {
-        id,
-        username,
-        name,
-        ...tokens,
-      };
+      const { access_token, refresh_token } = this.getTokens(payload);
+      await this.updateUserRefreshToken(id, refresh_token);
+      return { id, username, name, access_token, refresh_token };
     } catch (e) {
       throw new BadRequestException('User already exists');
     }
@@ -77,5 +66,13 @@ export class AuthService {
       access_token: this.jwtService.sign(payload, { expiresIn: '60s' }),
       refresh_token: this.jwtService.sign(payload, { expiresIn: '15d' }),
     };
+  }
+
+  async updateUserRefreshToken(
+    userId: string,
+    refreshToken: string
+  ): Promise<void> {
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.userService.update(userId, { refreshTokenHash });
   }
 }

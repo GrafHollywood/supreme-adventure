@@ -7,5 +7,5 @@ export class RegisterUserDto {
   password: string;
 }
 
-export type TUserResult = Omit<User, 'passwordHash'>;
+export type TUserResult = Omit<User, 'passwordHash' | 'refreshTokenHash'>;
 export type TUserLoginResult = TUserResult & Tokens;

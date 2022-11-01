@@ -9,8 +9,11 @@ export class User {
   username: string;
 
   @Column()
-  passwordHash: string;
+  name: string;
 
   @Column()
-  name: string;
+  passwordHash: string;
+
+  @Column({ default: null })
+  refreshTokenHash: string;
 }
