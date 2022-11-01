@@ -32,6 +32,12 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(@Request() req) {
+    return this.authService.logout(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req) {
     const { id, username, name } = await this.userService.findOneByUsername(

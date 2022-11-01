@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 import { CreateUserDto } from '../../users/dto/create-user.dto';
+import { User } from '../../users/entity/user.entity';
 import { UsersService } from '../../users/users.service';
 import {
   RegisterUserDto,
@@ -40,6 +41,13 @@ export class AuthService {
     const { access_token, refresh_token } = this.getTokens(payload);
     await this.updateUserRefreshToken(id, refresh_token);
     return { id, username, name, access_token, refresh_token };
+  }
+
+  async logout(userId: string): Promise<TUserResult> {
+    const { id, username, name } = await this.userService.update(userId, {
+      refreshTokenHash: null,
+    });
+    return { id, username, name };
   }
 
   async registerUser(newUser: RegisterUserDto): Promise<TUserLoginResult> {
