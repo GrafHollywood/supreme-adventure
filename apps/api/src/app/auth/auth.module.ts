@@ -8,17 +8,11 @@ import { AuthController } from './controller/auth.controller';
 import { AuthService } from './service/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
-  imports: [
-    UsersModule,
-    PassportModule,
-    JwtModule.register({
-      secret: environment.jwtSecret,
-      signOptions: { expiresIn: '60s' },
-    }),
-  ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  imports: [UsersModule, PassportModule, JwtModule.register({})],
+  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}
