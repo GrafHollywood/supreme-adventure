@@ -4,13 +4,15 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Tokens, UserLoginResult, UserResult } from '@supreme-adventure/data';
-import { RegisterUserDto } from '@supreme-adventure/dto';
 import * as argon2 from 'argon2';
 
 import { environment } from '../../../environments/environment';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { UsersService } from '../../users/users.service';
+import { UserLoginResult } from '../dto/login-user.dto';
+import { UserResult } from '../dto/logout-user.dto';
+import { RegisterUserDto } from '../dto/register-user.dto';
+import { Tokens } from '../dto/token.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -92,12 +94,13 @@ export class AuthService {
   async refreshTokens(userId: string, refreshToken: string): Promise<Tokens> {
     const user = await this.userService.findOne(userId);
     if (!user || !user.refreshTokenHash)
-      throw new ForbiddenException('Access Denied');
+      throw new ForbiddenException('Access Denied. Invalid token');
     const refreshTokenMatches = await argon2.verify(
       user.refreshTokenHash,
       refreshToken
     );
-    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    if (!refreshTokenMatches)
+      throw new ForbiddenException('Access Denied. Invalid token');
     const tokens = this.getTokens(user.username, user.id);
     await this.updateUserRefreshToken(userId, tokens.refresh_token);
     return tokens;

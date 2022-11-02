@@ -6,15 +6,27 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { Tokens, UserLoginResult, UserResult } from '@supreme-adventure/data';
-import { RegisterUserDto } from '@supreme-adventure/dto';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import { UsersService } from '../../users/users.service';
+import { LoginUserDto, UserLoginResult } from '../dto/login-user.dto';
+import { UserResult } from '../dto/logout-user.dto';
+import { RegisterUserDto } from '../dto/register-user.dto';
+import { Tokens } from '../dto/token.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { RefreshTokenAuthGuard } from '../guards/refresh-token-auth.guard';
 import { AuthService } from '../service/auth.service';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -22,12 +34,24 @@ export class AuthController {
     private userService: UsersService
   ) {}
 
+  @ApiBody({ type: LoginUserDto })
+  @ApiCreatedResponse({
+    description: 'Successful login',
+    type: UserLoginResult,
+  })
+  @ApiUnauthorizedResponse({ description: 'Wrong username or password' })
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req): Promise<UserLoginResult> {
     return this.authService.login(req.user);
   }
 
+  @ApiBody({ type: RegisterUserDto })
+  @ApiCreatedResponse({
+    description: 'Successful registration',
+    type: UserLoginResult,
+  })
+  @ApiBadRequestResponse({ description: 'User already exists' })
   @Post('register')
   async register(
     @Body() registerUserDto: RegisterUserDto
@@ -35,12 +59,20 @@ export class AuthController {
     return this.authService.registerUser(registerUserDto);
   }
 
+  @ApiCreatedResponse({
+    description: 'Successful logout',
+    type: UserResult,
+  })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Request() req): Promise<UserResult> {
     return this.authService.logout(req.user.sub);
   }
 
+  @ApiOkResponse({
+    description: 'Get user profile',
+    type: UserResult,
+  })
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req): Promise<UserResult> {
@@ -50,6 +82,11 @@ export class AuthController {
     return { id, username, name };
   }
 
+  @ApiCreatedResponse({
+    description: 'Successful refresh tokens',
+    type: Tokens,
+  })
+  @ApiForbiddenResponse({ description: 'Access Denied. Invalid token' })
   @UseGuards(RefreshTokenAuthGuard)
   @Post('refresh')
   refreshTokens(@Request() req): Promise<Tokens> {
