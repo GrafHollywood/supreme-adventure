@@ -4,8 +4,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 
+import { environment } from '../../../environments/environment';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { UsersService } from '../../users/users.service';
 import {
@@ -32,7 +33,7 @@ export class AuthService {
     const user = await this.userService.findOneByUsername(username);
     if (user) {
       const { passwordHash, ...userResult } = user;
-      const isMatch = await bcrypt.compare(password, passwordHash);
+      const isMatch = await argon2.verify(passwordHash, password);
       return isMatch ? userResult : null;
     }
     return null;
@@ -58,7 +59,7 @@ export class AuthService {
     const createUserDto: CreateUserDto = {
       username: username,
       name: name,
-      passwordHash: await bcrypt.hash(password, 10),
+      passwordHash: await argon2.hash(password),
     };
     try {
       const createdUser = await this.userService.create(createUserDto);
@@ -74,8 +75,14 @@ export class AuthService {
 
   getTokens(payload: JwtPayload): Tokens {
     return {
-      access_token: this.jwtService.sign(payload, { expiresIn: '60s' }),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: '15d' }),
+      access_token: this.jwtService.sign(payload, {
+        expiresIn: '60s',
+        secret: environment.jwtSecret,
+      }),
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: '15d',
+        secret: environment.jwtRefreshSecret,
+      }),
     };
   }
 
@@ -83,7 +90,7 @@ export class AuthService {
     userId: string,
     refreshToken: string
   ): Promise<void> {
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    const refreshTokenHash = await argon2.hash(refreshToken);
     await this.userService.update(userId, { refreshTokenHash });
   }
 
@@ -91,9 +98,9 @@ export class AuthService {
     const user = await this.userService.findOne(userId);
     if (!user || !user.refreshTokenHash)
       throw new ForbiddenException('Access Denied');
-    const refreshTokenMatches = await bcrypt.compare(
-      refreshToken,
-      user.refreshTokenHash
+    const refreshTokenMatches = await argon2.verify(
+      user.refreshTokenHash,
+      refreshToken
     );
     if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
     const payload: JwtPayload = { username: user.username, sub: user.id };
