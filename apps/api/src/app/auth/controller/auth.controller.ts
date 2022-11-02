@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -63,6 +64,7 @@ export class AuthController {
     description: 'Successful logout',
     type: UserResult,
   })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   logout(@Request() req): Promise<UserResult> {
@@ -73,6 +75,7 @@ export class AuthController {
     description: 'Get user profile',
     type: UserResult,
   })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req): Promise<UserResult> {
@@ -87,6 +90,7 @@ export class AuthController {
     type: Tokens,
   })
   @ApiForbiddenResponse({ description: 'Access Denied. Invalid token' })
+  @ApiBearerAuth()
   @UseGuards(RefreshTokenAuthGuard)
   @Post('refresh')
   refreshTokens(@Request() req): Promise<Tokens> {
