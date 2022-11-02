@@ -7,6 +7,7 @@ import { UsersService } from '../../users/users.service';
 export interface JwtPayload {
   username: string;
   sub: string;
+  exp: number;
 }
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {

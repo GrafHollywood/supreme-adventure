@@ -18,6 +18,7 @@ import { JwtPayload } from '../strategies/jwt.strategy';
 export interface Tokens {
   access_token: string;
   refresh_token: string;
+  express_in: number;
 }
 @Injectable()
 export class AuthService {
@@ -41,10 +42,9 @@ export class AuthService {
 
   async login(user: TUserResult): Promise<TUserLoginResult> {
     const { id, username, name } = user;
-    const payload: JwtPayload = { username, sub: id };
-    const { access_token, refresh_token } = this.getTokens(payload);
-    await this.updateUserRefreshToken(id, refresh_token);
-    return { id, username, name, access_token, refresh_token };
+    const tokens = this.getTokens(username, id);
+    await this.updateUserRefreshToken(id, tokens.refresh_token);
+    return { id, username, name, ...tokens };
   }
 
   async logout(userId: string): Promise<TUserResult> {
@@ -64,25 +64,29 @@ export class AuthService {
     try {
       const createdUser = await this.userService.create(createUserDto);
       const { id, username, name } = createdUser;
-      const payload: JwtPayload = { username, sub: id };
-      const { access_token, refresh_token } = this.getTokens(payload);
-      await this.updateUserRefreshToken(id, refresh_token);
-      return { id, username, name, access_token, refresh_token };
+      const tokens = this.getTokens(username, id);
+      await this.updateUserRefreshToken(id, tokens.refresh_token);
+      return { id, username, name, ...tokens };
     } catch (e) {
       throw new BadRequestException('User already exists');
     }
   }
 
-  getTokens(payload: JwtPayload): Tokens {
-    return {
+  getTokens(username: string, id: string): Tokens {
+    const payload = { username, sub: id };
+    const tokens = {
       access_token: this.jwtService.sign(payload, {
-        expiresIn: '60s',
+        expiresIn: '5m',
         secret: environment.jwtSecret,
       }),
       refresh_token: this.jwtService.sign(payload, {
-        expiresIn: '15d',
+        expiresIn: '7d',
         secret: environment.jwtRefreshSecret,
       }),
+    };
+    return {
+      ...tokens,
+      express_in: this.jwtService.decode(tokens.access_token)['exp'],
     };
   }
 
@@ -103,8 +107,7 @@ export class AuthService {
       refreshToken
     );
     if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
-    const payload: JwtPayload = { username: user.username, sub: user.id };
-    const tokens = this.getTokens(payload);
+    const tokens = this.getTokens(user.username, user.id);
     await this.updateUserRefreshToken(userId, tokens.refresh_token);
     return tokens;
   }
