@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@supreme-adventure/data": ["libs/data/src/index.ts"],
+      "@supreme-adventure/dto": ["libs/dto/src/index.ts"],
       "@supreme-adventure/ui": ["libs/ui/src/index.ts"]
     }
   },

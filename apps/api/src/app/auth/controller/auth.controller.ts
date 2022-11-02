@@ -6,9 +6,10 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { Tokens, UserLoginResult, UserResult } from '@supreme-adventure/data';
+import { RegisterUserDto } from '@supreme-adventure/dto';
 
 import { UsersService } from '../../users/users.service';
-import { RegisterUserDto } from '../dto/register-user.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
 import { RefreshTokenAuthGuard } from '../guards/refresh-token-auth.guard';
@@ -23,24 +24,26 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() req) {
+  async login(@Request() req): Promise<UserLoginResult> {
     return this.authService.login(req.user);
   }
 
   @Post('register')
-  async register(@Body() registerUserDto: RegisterUserDto) {
+  async register(
+    @Body() registerUserDto: RegisterUserDto
+  ): Promise<UserLoginResult> {
     return this.authService.registerUser(registerUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Request() req) {
+  logout(@Request() req): Promise<UserResult> {
     return this.authService.logout(req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async getProfile(@Request() req) {
+  async getProfile(@Request() req): Promise<UserResult> {
     const { id, username, name } = await this.userService.findOneByUsername(
       req.user.username
     );
@@ -49,7 +52,7 @@ export class AuthController {
 
   @UseGuards(RefreshTokenAuthGuard)
   @Post('refresh')
-  refreshTokens(@Request() req) {
+  refreshTokens(@Request() req): Promise<Tokens> {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
     return this.authService.refreshTokens(userId, refreshToken);

@@ -4,22 +4,13 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Tokens, UserLoginResult, UserResult } from '@supreme-adventure/data';
+import { RegisterUserDto } from '@supreme-adventure/dto';
 import * as argon2 from 'argon2';
 
 import { environment } from '../../../environments/environment';
 import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { UsersService } from '../../users/users.service';
-import {
-  RegisterUserDto,
-  TUserLoginResult,
-  TUserResult,
-} from '../dto/register-user.dto';
-import { JwtPayload } from '../strategies/jwt.strategy';
-export interface Tokens {
-  access_token: string;
-  refresh_token: string;
-  express_in: number;
-}
 @Injectable()
 export class AuthService {
   constructor(
@@ -30,7 +21,7 @@ export class AuthService {
   async validateUser(
     username: string,
     password: string
-  ): Promise<TUserResult | null> {
+  ): Promise<UserResult | null> {
     const user = await this.userService.findOneByUsername(username);
     if (user) {
       const { passwordHash, ...userResult } = user;
@@ -40,21 +31,21 @@ export class AuthService {
     return null;
   }
 
-  async login(user: TUserResult): Promise<TUserLoginResult> {
+  async login(user: UserResult): Promise<UserLoginResult> {
     const { id, username, name } = user;
     const tokens = this.getTokens(username, id);
     await this.updateUserRefreshToken(id, tokens.refresh_token);
     return { id, username, name, ...tokens };
   }
 
-  async logout(userId: string): Promise<TUserResult> {
+  async logout(userId: string): Promise<UserResult> {
     const { id, username, name } = await this.userService.update(userId, {
       refreshTokenHash: null,
     });
     return { id, username, name };
   }
 
-  async registerUser(newUser: RegisterUserDto): Promise<TUserLoginResult> {
+  async registerUser(newUser: RegisterUserDto): Promise<UserLoginResult> {
     const { username, name, password } = newUser;
     const createUserDto: CreateUserDto = {
       username: username,

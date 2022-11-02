@@ -1,1 +1,2 @@
-export * from './lib/todo.interface';
+export * from './lib/auth.interface';
+export * from './lib/user.interface';
